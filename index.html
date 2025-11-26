@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verificação de Credenciais</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
+        
+        body {
+            font-family: 'Fira Code', monospace;
+            background: #0a0e27;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #00ff41 0%, #00d4ff 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(0, 255, 65, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 65, 0.2);
+        }
+        
+        .matrix-bg {
+            background: linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        .matrix-bg::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: matrix-scroll 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes matrix-scroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(20px); }
+        }
+        
+        .neon-border {
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5), inset 0 0 10px rgba(0, 255, 65, 0.1);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.8), 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+        
+        .cyber-card {
+            background: rgba(10, 14, 39, 0.8);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+        
+        .result-card {
+            transition: all 0.3s ease;
+            background: rgba(10, 14, 39, 0.6);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+        }
+        
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            border-color: #00ff41;
+        }
+        
+        .terminal-input {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #00ff41;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        
+        .terminal-input:focus {
+            border-color: #00ff41;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+        
+        .glitch {
+            position: relative;
+        }
+        
+        .scan-line {
+            animation: scan 4s linear infinite;
+        }
+        
+        @keyframes scan {
+            0%, 100% { transform: translateY(-100%); }
+            50% { transform: translateY(100%); }
+        }
+        
+        .result-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .result-card.expanded .result-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .result-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .result-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        
+        .result-content::-webkit-scrollbar-thumb {
+            background: #00ff41;
+            border-radius: 4px;
+        }
+        
+        .result-content::-webkit-scrollbar-thumb:hover {
+            background: #00d4ff;
+        }
+        
+        html {
+            overflow-y: scroll;
+        }
+        
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .result-card.expanded .chevron {
+            transform: rotate(180deg);
+        }
+        
+        .chevron {
+            transition: transform 0.3s ease;
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+        
+        .message-item {
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body class="matrix-bg min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl relative z-10">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-block bg-black border-2 border-green-500 text-green-400 px-6 py-3 rounded-lg shadow-lg mb-4 neon-border">
+                <h1 class="text-3xl font-bold flex items-center gap-3 neon-text">
+                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+                    <span class="glitch">KAOTIC STRIKE</span> - EMAIL BREACH
+                </h1>
+            </div>
+            <p class="text-green-500 text-lg font-mono flex items-center justify-center gap-2">
+                <span class="animate-pulse">▶</span> 
+                SISTEMA DE VERIFICAÇÃO AVANÇADA
+                <span class="animate-pulse">◀</span>
+            </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="cyber-card rounded-lg shadow-2xl p-8 mb-8 backdrop-blur-sm">
+            <form id="checkForm">
+                <div class="mb-6">
+                    <label for="emailList" class="flex items-center gap-2 text-green-400 font-semibold mb-3 text-lg">
+                        <i data-lucide="terminal" class="w-5 h-5 text-green-500"></i>
+                        <span class="font-mono">[INPUT] CREDENCIAIS ALVO</span>
+                    </label>
+                    <textarea 
+                        id="emailList" 
+                        rows="10" 
+                        class="w-full px-4 py-3 terminal-input rounded-lg focus:outline-none transition-all font-mono text-sm resize-none"
+                        placeholder="root@target.com:P@ssw0rd&#10;admin@victim.com:Sup3rS3cr3t&#10;user@breach.net:Passw0rd123"
+                    ></textarea>
+                    <p class="text-sm text-green-600 mt-2 flex items-center gap-1 font-mono">
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                        <span class="animate-pulse">›</span> FORMATO: email:senha (um por linha)
+                    </p>
+                </div>
+                <button 
+                    type="submit" 
+                    class="w-full bg-black border-2 border-green-500 text-green-400 font-bold py-4 rounded-lg hover:bg-green-500 hover:text-black transition-all flex items-center justify-center gap-2 text-lg neon-border hover:shadow-lg hover:shadow-green-500/50"
+                >
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                    <span class="font-mono">INICIAR ATAQUE</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="space-y-4">
+            <h2 class="text-2xl font-bold text-green-400 mb-4 flex items-center gap-2 font-mono">
+                <i data-lucide="activity" class="w-7 h-7 text-green-500"></i>
+                <span class="animate-pulse">»</span> RESULTADOS DO SCAN
+            </h2>
+
+            <!-- Success Card -->
+            <div class="result-card rounded-lg shadow-lg overflow-hidden cursor-pointer">
+                <div class="p-6 bg-gradient-to-r from-green-950 to-green-900 flex items-center justify-between border-b border-green-500/30">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-green-500 p-3 rounded-lg animate-pulse">
+                            <i data-lucide="check-circle" class="w-6 h-6 text-black"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-green-400 font-mono">[✓] SUCESSO</h4>
+                            <p class="text-green-500 text-sm font-medium font-mono">
+                                <span id="successCount">0</span> credenciais comprometidas
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            onclick="copyResults('successContent')" 
+                            class="bg-green-500 hover:bg-green-400 text-black p-2 rounded-lg transition-colors"
+                            type="button"
+                        >
+                            <i data-lucide="copy" class="w-5 h-5"></i>
+                        </button>
+                        <i data-lucide="chevron-down" class="w-6 h-6 text-green-400 chevron"></i>
+                    </div>
+                </div>
+                <div id="successContent" class="result-content p-6 bg-green-950/50 space-y-2"></div>
+            </div>
+
+            <!-- Error Card -->
+            <div class="result-card rounded-lg shadow-lg overflow-hidden cursor-pointer">
+                <div class="p-6 bg-gradient-to-r from-red-950 to-red-900 flex items-center justify-between border-b border-red-500/30">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-red-500 p-3 rounded-lg animate-pulse">
+                            <i data-lucide="x-circle" class="w-6 h-6 text-black"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-red-400 font-mono">[✗] ERRO</h4>
+                            <p class="text-red-500 text-sm font-medium font-mono">
+                                <span id="errorCount">0</span> erros de sistema
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            onclick="copyResults('errorContent')" 
+                            class="bg-red-500 hover:bg-red-400 text-black p-2 rounded-lg transition-colors"
+                            type="button"
+                        >
+                            <i data-lucide="copy" class="w-5 h-5"></i>
+                        </button>
+                        <i data-lucide="chevron-down" class="w-6 h-6 text-red-400 chevron"></i>
+                    </div>
+                </div>
+                <div id="errorContent" class="result-content p-6 bg-red-950/50 space-y-2"></div>
+            </div>
+
+            <!-- Fail Card -->
+            <div class="result-card rounded-lg shadow-lg overflow-hidden cursor-pointer">
+                <div class="p-6 bg-gradient-to-r from-yellow-950 to-yellow-900 flex items-center justify-between border-b border-yellow-500/30">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-yellow-500 p-3 rounded-lg animate-pulse">
+                            <i data-lucide="alert-triangle" class="w-6 h-6 text-black"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-yellow-400 font-mono">[!] FALHA</h4>
+                            <p class="text-yellow-500 text-sm font-medium font-mono">
+                                <span id="failCount">0</span> tentativas bloqueadas
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            onclick="copyResults('failContent')" 
+                            class="bg-yellow-500 hover:bg-yellow-400 text-black p-2 rounded-lg transition-colors"
+                            type="button"
+                        >
+                            <i data-lucide="copy" class="w-5 h-5"></i>
+                        </button>
+                        <i data-lucide="chevron-down" class="w-6 h-6 text-yellow-400 chevron"></i>
+                    </div>
+                </div>
+                <div id="failContent" class="result-content p-6 bg-yellow-950/50 space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        
+        lucide.createIcons();
+        
+        const socket = io();
+        const form = document.getElementById("checkForm");
+        const successContent = document.getElementById("successContent");
+        const errorContent = document.getElementById("errorContent");
+        const failContent = document.getElementById("failContent");
+
+        let successCount = 0;
+        let errorCount = 0;
+        let failCount = 0;
+
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const emailList = document.getElementById("emailList").value;
+            
+            if (!emailList.trim()) {
+                alert("Por favor, insira ao menos um email e senha!");
+                return;
+            }
+            
+            successContent.innerHTML = "";
+            errorContent.innerHTML = "";
+            failContent.innerHTML = "";
+            successCount = 0;
+            errorCount = 0;
+            failCount = 0;
+            updateCounts();
+            socket.emit("startCheck", emailList);
+        });
+
+        socket.on("result", function (message) {
+            const messageElement = document.createElement("div");
+            messageElement.className = "message-item px-4 py-3 rounded-lg font-mono text-sm";
+            
+            let targetDiv = null;
+
+            if (message.startsWith("[SUCESSO]")) {
+                targetDiv = successContent;
+                messageElement.classList.add("bg-green-950", "text-green-400", "border-l-4", "border-green-500");
+                successCount++;
+            } else if (message.startsWith("[ERRO]")) {
+                targetDiv = errorContent;
+                messageElement.classList.add("bg-red-950", "text-red-400", "border-l-4", "border-red-500");
+                errorCount++;
+            } else if (message.startsWith("[FALHA]")) {
+                targetDiv = failContent;
+                messageElement.classList.add("bg-yellow-950", "text-yellow-400", "border-l-4", "border-yellow-500");
+                failCount++;
+            }
+
+            if (targetDiv) {
+                messageElement.textContent = message;
+                targetDiv.appendChild(messageElement);
+            }
+
+            updateCounts();
+        });
+
+        function updateCounts() {
+            document.getElementById("successCount").textContent = successCount;
+            document.getElementById("errorCount").textContent = errorCount;
+            document.getElementById("failCount").textContent = failCount;
+        }
+
+        function copyResults(contentId) {
+            const contentDiv = document.getElementById(contentId);
+            const textToCopy = Array.from(contentDiv.children)
+                .map((child) => child.textContent)
+                .join("\n");
+
+            if (!textToCopy) {
+                alert("Não há resultados para copiar!");
+                return;
+            }
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                
+                const btn = event.target.closest('button');
+                const icon = btn.querySelector('i');
+                icon.setAttribute('data-lucide', 'check');
+                lucide.createIcons();
+                
+                setTimeout(() => {
+                    icon.setAttribute('data-lucide', 'copy');
+                    lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        // Toggle expand/collapse
+        document.querySelectorAll(".result-card").forEach((card) => {
+            card.addEventListener("click", function (e) {
+                if (!e.target.closest('button')) {
+                    this.classList.toggle("expanded");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

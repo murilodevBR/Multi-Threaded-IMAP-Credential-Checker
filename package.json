@@ -1,0 +1,21 @@
+{
+  "name": "uzy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "async": "^3.2.5",
+    "express": "^4.19.2",
+    "imap-simple": "^5.1.0",
+    "nodemailer": "^6.9.15",
+    "socket.io": "^4.7.5",
+    "socksjs": "^0.5.0",
+    "winston": "^3.14.2"
+  }
+}
