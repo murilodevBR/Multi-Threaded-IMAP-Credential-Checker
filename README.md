@@ -1,3 +1,6 @@
+![Demo](localhost.png)
+
+
 📌 Overview
 
 This project implements a multi-threaded system to validate email credentials through IMAP connections using Node.js, worker_threads, and imap-simple, with real-time result emission.
